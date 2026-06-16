@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📔 Personal Journal Diary</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#74ebd5,#ACB6E5);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+.container{
+    width:100%;
+    max-width:700px;
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    color:#333;
+}
+
+.form{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+input,
+select,
+textarea{
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:16px;
+}
+
+textarea{
+    resize:none;
+    height:120px;
+}
+
+button{
+    padding:12px;
+    background:#4CAF50;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+button:hover{
+    background:#45a049;
+}
+
+h2,h3{
+    margin-top:20px;
+    color:#444;
+}
+
+.entry{
+    background:#f9f9f9;
+    border-left:5px solid #4CAF50;
+    margin-top:15px;
+    padding:15px;
+    border-radius:8px;
+    position:relative;
+}
+
+.entry h4{
+    margin-bottom:8px;
+}
+
+.delete-btn{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:red;
+    color:white;
+    border:none;
+    padding:5px 10px;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+.delete-btn:hover{
+    background:darkred;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>📔 Personal Journal Diary</h1>
+
+    <div class="form">
+        <input type="date" id="date">
+
+        <select id="mood">
+            <option value="😊">😊 Happy</option>
+            <option value="😐">😐 Neutral</option>
+            <option value="😞">😞 Sad</option>
+        </select>
+
+        <textarea id="text" placeholder="Write your journal entry..."></textarea>
+
+        <button onclick="addEntry()">Save Entry</button>
+    </div>
+
+    <h3>Filter by Month</h3>
+    <input type="month" id="monthFilter" onchange="displayEntries()">
+
+    <h2>Past Entries</h2>
+    <div id="entries"></div>
+</div>
+
+<script>
+let entries = JSON.parse(localStorage.getItem("journalEntries")) || [];
+
+function addEntry() {
+    let date = document.getElementById("date").value;
+    let mood = document.getElementById("mood").value;
+    let text = document.getElementById("text").value;
+
+    if(date === "" || text.trim() === "") {
+        alert("Please fill all fields!");
+        return;
+    }
+
+    let entry = {
+        id: Date.now(),
+        date: date,
+        mood: mood,
+        text: text
+    };
+
+    entries.push(entry);
+
+    localStorage.setItem(
+        "journalEntries",
+        JSON.stringify(entries)
+    );
+
+    document.getElementById("date").value = "";
+    document.getElementById("text").value = "";
+
+    displayEntries();
+}
+
+function deleteEntry(id) {
+    entries = entries.filter(entry => entry.id !== id);
+
+    localStorage.setItem(
+        "journalEntries",
+        JSON.stringify(entries)
+    );
+
+    displayEntries();
+}
+
+function displayEntries() {
+    let container = document.getElementById("entries");
+    container.innerHTML = "";
+
+    let monthFilter =
+        document.getElementById("monthFilter").value;
+
+    let filteredEntries = entries;
+
+    if(monthFilter){
+        filteredEntries = entries.filter(entry =>
+            entry.date.startsWith(monthFilter)
+        );
+    }
+
+    filteredEntries.sort(
+        (a,b) => new Date(b.date) - new Date(a.date)
+    );
+
+    filteredEntries.forEach(entry => {
+        let div = document.createElement("div");
+        div.className = "entry";
+
+        div.innerHTML = `
+            <button class="delete-btn"
+            onclick="deleteEntry(${entry.id})">
+            Delete
+            </button>
+
+            <h4>${entry.mood} ${entry.date}</h4>
+            <p>${entry.text}</p>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+displayEntries();
+</script>
+
+</body>
+</html>
